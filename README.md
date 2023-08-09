@@ -199,3 +199,8 @@ The ASR model is downloaded each time you start the container, using the large m
 ```sh
 docker run -d -p 9000:9000 -e ASR_MODEL=large -v //c/tmp/whisper:/root/.cache/whisper onerahmet/openai-whisper-asr-webservice:latest
 ```
+
+### CHANGELOG updates
+
+Run auto-changelog to update your CHANGELOG.
+[`auto-changelog`](https://github.com/CookPete/auto-changelog).
