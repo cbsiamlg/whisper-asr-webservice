@@ -138,3 +138,9 @@ def format_json(json_file):
             'probability': word[3]
         } for word in segment[10]]
     } for segment in json_file['segments']]
+    output = {
+        "text": text,
+        "segments": segments,
+        "language": json_file["language"]
+    }
+    return output
