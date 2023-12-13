@@ -1,7 +1,6 @@
 import json
 import os
 from typing import TextIO
-
 from ctranslate2.converters.transformers import TransformersConverter
 
 
@@ -139,9 +138,3 @@ def format_json(json_file):
             'probability': word[3]
         } for word in segment[10]]
     } for segment in json_file['segments']]
-    output = {
-        "text": text,
-        "segments": segments,
-        "language": json_file["language"]
-    }
-    return output
