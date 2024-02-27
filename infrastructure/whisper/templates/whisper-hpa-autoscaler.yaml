@@ -1,0 +1,20 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ template "whisper-api.name" . }} -autoscaler
+  namespace: video-services
+  {{- include "whisper-api.labels" . | nindent 2}}
+spec:
+  minReplicas: {{ .Values.whisperHPA.autoscale.min }}
+  maxReplicas: {{ .Values.whisperHPA.autoscale.max }}
+  metrics:
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.whisperHPA.autoscale.memoryUtilization }}
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "whisper-api.name" . }}

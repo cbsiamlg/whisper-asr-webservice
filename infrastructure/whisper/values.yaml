@@ -19,5 +19,11 @@ whisperService:
   port: 9000
   targetPort: 9000
 
+whisperHPA:
+  autoscale:
+      minReplicas: 3
+      maxReplicas: 5
+      memoryUtilizationPercentage: 25
+
 ingress:
   host: devwhisper.amlg.io
