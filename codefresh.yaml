@@ -125,7 +125,7 @@ steps:
     working_directory: ./whisper-asr-webservice
     arguments:
       action: push
-      helm_version: 3.14.0
+      helm_version: 3.12.2
       chart_name: infrastructure/whisper
       chart_repo_url: "cm://h.cfcr.io/cbsiamlg/default/"
     when:
@@ -146,7 +146,7 @@ steps:
       chart_name: infrastructure/whisper
       release_name: whisper
       namespace: video-services
-      helm_version: 3.14.0
+      helm_version: 3.12.2
       kube_context: dev-fleet-v4
       custom_value_files:
         - "infrastructure/whisper/values.yaml"
@@ -173,7 +173,7 @@ steps:
       chart_name: infrastructure/whisper
       release_name: whisper
       namespace: video-services
-      helm_version: 3.14.0
+      helm_version: 3.12.2
       kube_context: prod-fleet-v4
       custom_value_files:
         - "infrastructure/whisper/values.prod.yaml"
