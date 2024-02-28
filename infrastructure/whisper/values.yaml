@@ -8,7 +8,7 @@ whisperDeployment:
   resources:
     limits:
       cpu: "7000m"
-      memory: "49Gi"
+      memory: "20Gi"
       gpu: "1"
     request:
       cpu: "3000m"
@@ -23,7 +23,7 @@ whisperHPA:
   autoscale:
       min: 3
       max: 5
-      memoryUtilization: 25
+      memoryUtilization: 60
 
 ingress:
   host: devwhisper.amlg.io
