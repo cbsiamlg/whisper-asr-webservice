@@ -21,9 +21,9 @@ whisperService:
 
 whisperHPA:
   autoscale:
-      minReplicas: 3
-      maxReplicas: 5
-      memoryUtilizationPercentage: 25
+      min: 3
+      max: 5
+      memoryUtilization: 25
 
 ingress:
   host: devwhisper.amlg.io
