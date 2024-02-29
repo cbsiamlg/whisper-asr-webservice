@@ -8,7 +8,7 @@ whisperDeployment:
   resources:
     limits:
       cpu: "7000m"
-      memory: "20Gi"
+      memory: "40Gi"
       gpu: "1"
     request:
       cpu: "3000m"
