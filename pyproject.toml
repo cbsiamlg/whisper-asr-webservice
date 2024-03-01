@@ -34,7 +34,7 @@ fastapi = "^0.95.1"
 llvmlite = "^0.40.1"
 numba = "^0.57.1"
 openai-whisper = "20231117"
-faster-whisper = "^0.10.0"
+faster-whisper = "^1.0.0"
 torch = { version = "^1.13.1", extras = ["cpu"] }
 
 [tool.poetry.dev-dependencies]
