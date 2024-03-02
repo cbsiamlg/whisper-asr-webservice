@@ -60,6 +60,36 @@ class WriteTXT(ResultWriter):
             print(segment.text.strip(), file=file, flush=True)
 
 
+class WriteRawJSON(ResultWriter):
+    extension: str = "raw_json"
+
+    def write_result(self, result: dict, file: TextIO):
+        formatted_segments = []
+        for raw_segment in result.get("segments", []):
+            formatted_segment = self.format_segment(raw_segment)
+            formatted_segments.append(formatted_segment)
+        result["segments"] = formatted_segments
+        json.dump(result, file, indent=2)
+
+    def format_segment(self, raw_segment):
+        segment = [
+            {
+                "id": 0,
+                "seek": 0,
+                "start": segment[2],
+                "end": segment[3],
+                "text": segment[4],
+                "tokens": segment[5],
+                "temperature": segment[6],
+                "avg_logprob": segment[7],
+                "compression_ratio": segment[8],
+                "no_speech_prob": segment[9],
+            }
+            for segment in raw_segment["segments"]
+        ]
+        return segment
+
+
 class WriteVTT(ResultWriter):
     extension: str = "vtt"
 
@@ -119,28 +149,30 @@ class WriteJSON(ResultWriter):
 
 
 def format_json(json_file):
-    text = json_file['text']
-    segments = [{
-        'id': 0,
-        'seek': 0,
-        'start': segment[2],
-        'end': segment[3],
-        'text': segment[4],
-        'tokens': segment[5],
-        'temperature': segment[6],
-        'avg_logprob': segment[7],
-        'compression_ratio': segment[8],
-        'no_speech_prob': segment[9],
-        'words': [{
-            'word': word[2],
-            'start': word[0],
-            'end': word[1],
-            'probability': word[3]
-        } for word in segment[10]]
-    } for segment in json_file['segments']]
-    output = {
-        "text": text,
-        "segments": segments,
-        "language": json_file["language"]
-    }
+    text = json_file["text"]
+    segments = [
+        {
+            "id": 0,
+            "seek": 0,
+            "start": segment[2],
+            "end": segment[3],
+            "text": segment[4],
+            "tokens": segment[5],
+            "temperature": segment[6],
+            "avg_logprob": segment[7],
+            "compression_ratio": segment[8],
+            "no_speech_prob": segment[9],
+            "words": [
+                {
+                    "word": word[2],
+                    "start": word[0],
+                    "end": word[1],
+                    "probability": word[3],
+                }
+                for word in segment[10]
+            ],
+        }
+        for segment in json_file["segments"]
+    ]
+    output = {"text": text, "segments": segments, "language": json_file["language"]}
     return output
