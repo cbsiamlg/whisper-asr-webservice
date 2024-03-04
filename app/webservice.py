@@ -70,7 +70,7 @@ def asr(
     audio_file: UploadFile = File(...),
     encode: bool = Query(default=True, description="Encode audio first through ffmpeg"),
     output: Union[str, None] = Query(
-        default="txt", enum=["txt", "vtt", "srt", "tsv", "json"]
+        default="txt", enum=["txt", "vtt", "srt", "tsv", "json", "raw_json"]
     ),
     word_timestamps: bool = Query(
         default=False,
