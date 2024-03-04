@@ -45,9 +45,6 @@ spec:
             httpGet:
               path: /healthz
               port: {{ .Values.whisperService.port }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.ingress.host }}
               initialDelaySeconds: 180
               timeoutSeconds: 2
               periodSeconds: 30
@@ -56,9 +53,6 @@ spec:
             httpGet:
               path: /healthz
               port: {{ .Values.whisperService.port }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.ingress.host }}
               initialDelaySeconds: 180
               timeoutSeconds: 2
               periodSeconds: 4
@@ -67,9 +61,6 @@ spec:
             httpGet:
               path: /healthx
               port: {{ .Values.whisperService.port }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.ingress.host }}
             initialDelaySeconds: 180
             timeoutSeconds: 2
             periodSeconds: 10
