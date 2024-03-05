@@ -8,13 +8,13 @@ def client():
     return TestClient(app)
 
 
-def test_healthx(client):
-    response = client.get("/healthx")
+def test_liveness(client):
+    response = client.get("/liveness")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
 
-def test_healthz(client):
-    response = client.get("/healthz")
+def test_readiness(client):
+    response = client.get("/readiness")
     assert response.status_code == 200
     assert response.text == "OK"
