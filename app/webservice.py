@@ -6,6 +6,7 @@ from typing import BinaryIO, Union
 import numpy as np
 import ffmpeg
 from fastapi import FastAPI, File, UploadFile, Query, applications
+from fastapi import Response, status
 from fastapi.responses import StreamingResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import get_swagger_ui_html
@@ -170,8 +171,8 @@ def load_audio(file: BinaryIO, encode=True, sr: int = SAMPLE_RATE):
     return np.frombuffer(out, np.int16).flatten().astype(np.float32) / 32768.0
 
 
-@app.get("/healthx")
-async def healthx():
+@app.get("/readiness/", status_code=status.HTTP_200_OK)
+def readiness_check():
     """
     Health readiness endpoint for external monitoring systems.
     Returns the status as "ok".
@@ -179,8 +180,8 @@ async def healthx():
     return {"status": "ok"}
 
 
-@app.route("/healthz")
-async def healthz():
+@app.get("/liveness/", status_code=status.HTTP_200_OK)
+def liveness_check():
     """
     Health liveness check endpoint for internal monitoring systems.
     Returns the status as "ok".

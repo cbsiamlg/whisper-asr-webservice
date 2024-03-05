@@ -43,23 +43,15 @@ spec:
               value: medium.en
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: /liveness
               port: {{ .Values.whisperService.port }}
               initialDelaySeconds: 180
               timeoutSeconds: 2
               periodSeconds: 30
               failureThreshold: 1
-          startupProbe:
-            httpGet:
-              path: /healthz
-              port: {{ .Values.whisperService.port }}
-              initialDelaySeconds: 180
-              timeoutSeconds: 2
-              periodSeconds: 4
-              failureThreshold: 30
           readinessProbe:
             httpGet:
-              path: /healthx
+              path: /readiness
               port: {{ .Values.whisperService.port }}
             initialDelaySeconds: 180
             timeoutSeconds: 2
