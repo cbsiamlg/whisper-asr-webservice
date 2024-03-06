@@ -62,16 +62,12 @@ class WriteTXT(ResultWriter):
 
 class WriteRawJSON(ResultWriter):
     extension: str = "raw_json"
-
     def write_result(self, result: dict, file: TextIO):
-        formatted_segments = []
-        for raw_segment in result.get("segments", []):
-            formatted_segment = self.format_segment(raw_segment)
-            formatted_segments.append(formatted_segment)
+        formatted_segments = self.format_segments(result)
         result["segments"] = formatted_segments
         json.dump(result, file, indent=2)
 
-    def format_segment(self, raw_segment):
+    def format_segments(self, output):
         segment = [
             {
                 "id": 0,
@@ -85,7 +81,7 @@ class WriteRawJSON(ResultWriter):
                 "compression_ratio": segment[8],
                 "no_speech_prob": segment[9],
             }
-            for segment in raw_segment["segments"]
+            for segment in output["segments"]
         ]
         return segment
 
