@@ -7,11 +7,11 @@ image:
 whisperDeployment:
   resources:
     limits:
-      cpu: "3000m"
+      cpu: "3100m"
       memory: "10Gi"
       gpu: "1"
     request:
-      cpu: "1400m"
+      cpu: "1450m"
       memory: "6Gi"
       gpu: "1"
 
