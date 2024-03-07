@@ -11,8 +11,8 @@ whisperDeployment:
       memory: "10Gi"
       gpu: "1"
     request:
-      cpu: "1450m"
-      memory: "6Gi"
+      cpu: "1600m"
+      memory: "7Gi"
       gpu: "1"
 
 whisperService:
