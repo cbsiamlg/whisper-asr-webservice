@@ -13,6 +13,7 @@ from .utils import (
     WriteVTT,
     WriteTSV,
     WriteJSON,
+    WriteRawJSON,
 )
 from faster_whisper import WhisperModel
 
@@ -85,6 +86,8 @@ def write_result(result: dict, file: BinaryIO, output: Union[str, None]):
         WriteTSV(ResultWriter).write_result(result, file=file)
     elif output == "json":
         WriteJSON(ResultWriter).write_result(result, file=file)
+    elif output == "raw_json":
+        WriteRawJSON(ResultWriter).write_result(result, file=file)
     elif output == "txt":
         WriteTXT(ResultWriter).write_result(result, file=file)
     else:

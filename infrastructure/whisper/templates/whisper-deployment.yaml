@@ -41,5 +41,23 @@ spec:
               value: faster_whisper
             - name: ASR_MODEL
               value: medium.en
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: {{ .Values.whisperService.port }}
+            initialDelaySeconds: 200
+            timeoutSeconds: 2
+            periodSeconds: 30
+            failureThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: {{ .Values.whisperService.port }}
+            initialDelaySeconds: 200
+            timeoutSeconds: 2
+            periodSeconds: 10
+            failureThreshold: 3
       nodeSelector:
         cloud.google.com/gke-nodepool: "splice-xcd-gpu-t4"
+
+
