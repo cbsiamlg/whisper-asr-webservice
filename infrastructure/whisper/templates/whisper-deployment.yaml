@@ -45,15 +45,15 @@ spec:
             httpGet:
               path: /liveness
               port: {{ .Values.whisperService.port }}
-              initialDelaySeconds: 180
-              timeoutSeconds: 2
-              periodSeconds: 30
-              failureThreshold: 1
+            initialDelaySeconds: 200
+            timeoutSeconds: 2
+            periodSeconds: 30
+            failureThreshold: 1
           readinessProbe:
             httpGet:
               path: /readiness
               port: {{ .Values.whisperService.port }}
-            initialDelaySeconds: 180
+            initialDelaySeconds: 200
             timeoutSeconds: 2
             periodSeconds: 10
             failureThreshold: 3
