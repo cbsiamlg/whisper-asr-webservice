@@ -2,7 +2,7 @@ import pytest
 import requests
 import json
 from google.cloud import storage
-import ffmpeg
+from moviepy.editor import VideoFileClip, AudioFileClip
 import tempfile
 import os
 import logging
@@ -23,7 +23,7 @@ def get_test_video(convert_to_audio=True, trim=True):
     except Exception as e:
         logger.error(
             f"Error accessing Google Cloud Storage: {str(e)}"
-             "Make sure you've authenticated with `gcloud auth login` so the credentials are read."
+            "Make sure you've authenticated with `gcloud auth login` so the credentials are read."
         )
 
     temp_video_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
@@ -36,27 +36,13 @@ def get_test_video(convert_to_audio=True, trim=True):
                 suffix=".wav"
             )
             try:
-                stream = ffmpeg.input(temp_video_file.name)
-                audio = stream.audio
+                video = VideoFileClip(temp_video_file.name)
+                audio = video.audio
                 if trim:
-                    audio = audio.filter("atrim", start=0, duration=30)
-                output = ffmpeg.output(
-                    audio,
-                    temp_audio_file.name,
-                    acodec="pcm_s16le",
-                    ac=1,
-                    ar="16k"
-                )
-
-                try:
-                    ffmpeg.run(
-                        output,
-                        overwrite_output=True,
-                        capture_stderr=True
-                    )
-                except ffmpeg.Error as e:
-                    logger.error("ffmpeg stderr:", e.stderr.decode("utf8"))
-                    raise
+                    audio = audio.subclip(0, 30)
+                audio = audio.set_fps(16000)
+                audio.write_audiofile(temp_audio_file.name, codec='pcm_s16le', ffmpeg_params=["-ac", "1"])
+                video.close()
 
                 with open(temp_audio_file.name, "rb") as f:
                     content = f.read()
@@ -73,15 +59,11 @@ def get_test_video(convert_to_audio=True, trim=True):
 def trim_video(video_path, start_time=0, end_time=120):
     temp_trimmed_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
     try:
-        input_stream = ffmpeg.input(video_path)
-        output = ffmpeg.output(
-            input_stream.trim(
-                start=start_time,
-                end=end_time
-            ),
-            temp_trimmed_file.name
-        )
-        ffmpeg.run(output, overwrite_output=True)
+        video = VideoFileClip(video_path)
+        trimmed_video = video.subclip(start_time, end_time)
+        trimmed_video.write_videofile(temp_trimmed_file.name)
+        video.close()
+        trimmed_video.close()
         return temp_trimmed_file.name
     except Exception as e:
         logger.error(f"Error trimming video: {e}")
