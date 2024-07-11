@@ -190,6 +190,18 @@ docker run -d --gpus all -p 9000:9000 whisper-asr-webservice-gpu
 docker run -d --gpus all -p 9000:9000 -e ASR_MODEL=base whisper-asr-webservice-gpu
 ```
 
+## Test
+
+When making any updates, make sure to test with the file `app/tests/test_transcribe.py`. 
+This will grab a video from GCS and hit the endpoints to make sure we get a response.
+
+Notes:
+- This currently isn't part of CI/CD, so you just need to run the tests before opening a PR. 
+- Make sure to run `gcloud auth login` so that the environment variables for your credentials are set. This way we can pull the test assets from GCS. 
+
+1) Make sure you've run `poetry install` in your environment so you have all the dependencies. You can run `poetry shell` beforehand to have a clean venv.
+2) Run `poetry run pytest`
+
 ## Cache
 
 The ASR model is downloaded each time you start the container, using the large model this can take some time. If you want to decrease the time it takes to start your container by skipping the download, you can store the cache directory (/root/.cache/whisper) to an persistent storage. Next time you start your container the ASR Model will be taken from the cache instead of being downloaded again.
