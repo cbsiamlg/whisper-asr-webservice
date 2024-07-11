@@ -22,7 +22,7 @@ whisperService:
 whisperHPA:
   autoscale:
       min: 3
-      max: 15
+      max: 75
       memoryUtilization: 75
 
 ingress:

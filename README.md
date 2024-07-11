@@ -10,8 +10,8 @@ This project is a modification of an open source approach to containerizing the 
 
 AMLG updated release (v1.2.0) supports following whisper models:
 
-- [openai/whisper](https://github.com/openai/whisper)@[v20230124](https://github.com/openai/whisper/releases/tag/v20230124)
-- [faster-whisper](https://github.com/guillaumekln/faster-whisper)@[0.6.0](https://github.com/guillaumekln/faster-whisper/releases/tag/v0.6.0)
+- [openai/whisper](https://github.com/openai/whisper)@[v20231117](https://github.com/openai/whisper/releases/tag/v20231117)
+- [faster-whisper](https://github.com/guillaumekln/faster-whisper)@[1.0.3](https://github.com/guillaumekln/faster-whisper/releases/tag/v1.0.3)
 
 ## Usage
 
