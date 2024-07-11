@@ -195,7 +195,9 @@ docker run -d --gpus all -p 9000:9000 -e ASR_MODEL=base whisper-asr-webservice-g
 When making any updates, make sure to test with the file `app/tests/test_transcribe.py`. 
 This will grab a video from GCS and hit the endpoints to make sure we get a response.
 
-Note: This currently isn't part of CI/CD, so you just need to run the tests before opening a PR. 
+Notes:
+- This currently isn't part of CI/CD, so you just need to run the tests before opening a PR. 
+- Make sure to run `gcloud auth login` so that the environment variables for your credentials are set. This way we can pull the test assets from GCS. 
 
 1) Make sure you've run `poetry install` in your environment so you have all the dependencies. You can run `poetry shell` beforehand to have a clean venv.
 2) Run `poetry run pytest`
