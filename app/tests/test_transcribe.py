@@ -5,6 +5,10 @@ from google.cloud import storage
 import ffmpeg
 import tempfile
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 BASE_URL = "https://devwhisper.amlg.io"
 BUCKET_NAME = "amlg-dev-playground"
@@ -12,9 +16,15 @@ TEST_VIDEO_NAME = "test_assets/beavis_and_butthead.mp4"
 
 
 def get_test_video(convert_to_audio=True, trim=True):
-    storage_client = storage.Client(project="i-amlg-dev")
-    bucket = storage_client.get_bucket(BUCKET_NAME)
-    blob = bucket.get_blob(TEST_VIDEO_NAME)
+    try:
+        storage_client = storage.Client(project="i-amlg-dev")
+        bucket = storage_client.get_bucket(BUCKET_NAME)
+        blob = bucket.get_blob(TEST_VIDEO_NAME)
+    except Exception as e:
+        logger.error(
+            f"Error accessing Google Cloud Storage: {str(e)}"
+             "Make sure you've authenticated with `gcloud auth login` so the credentials are read."
+        )
 
     temp_video_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
     try:
@@ -45,7 +55,7 @@ def get_test_video(convert_to_audio=True, trim=True):
                         capture_stderr=True
                     )
                 except ffmpeg.Error as e:
-                    print("ffmpeg stderr:", e.stderr.decode("utf8"))
+                    logger.error("ffmpeg stderr:", e.stderr.decode("utf8"))
                     raise
 
                 with open(temp_audio_file.name, "rb") as f:
@@ -74,7 +84,7 @@ def trim_video(video_path, start_time=0, end_time=120):
         ffmpeg.run(output, overwrite_output=True)
         return temp_trimmed_file.name
     except Exception as e:
-        print(f"Error trimming video: {e}")
+        logger.error(f"Error trimming video: {e}")
         os.unlink(temp_trimmed_file.name)
         raise
 
@@ -91,9 +101,9 @@ def test_transcription_request(short_video=True, word_timestamps=True):
     }
     response = requests.post(url=f"{BASE_URL}/asr", files=files, params=params)
 
-    print(f"Transcription Status Code: {response.status_code}")
-    print(f"Transcription Headers: {response.headers}")
-    print(f"Transcription Content (sample): {response.text[:100]}")
+    logger.info(f"Transcription Status Code: {response.status_code}")
+    logger.info(f"Transcription Headers: {response.headers}")
+    logger.info(f"Transcription Content (sample): {response.text[:100]}")
 
     assert response.status_code == 200, "Transcription request failed"
     assert len(response.text) > 0, "Transcription returned empty result"
@@ -111,6 +121,23 @@ def test_language_detection():
     assert (
         "language_code" in result
     ), "Language detection result is missing 'language_code'"
+
+
+def test_liveness():
+    try:
+        response = requests.get(f"{BASE_URL}/liveness/", allow_redirects=True)
+        response.raise_for_status()
+        assert response.json() == {"status": "ok"}
+    except requests.exceptions.RequestException as e:
+        pytest.fail(f"Liveness check failed: {str(e)}")
+
+def test_readiness():
+    try:
+        response = requests.get(f"{BASE_URL}/readiness/", allow_redirects=True)
+        response.raise_for_status()
+        assert response.json() == {"status": "ok"}
+    except requests.exceptions.RequestException as e:
+        pytest.fail(f"Readiness check failed: {str(e)}")
 
 
 if __name__ == "__main__":
