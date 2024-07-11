@@ -36,7 +36,6 @@ numba = "^0.57.1"
 openai-whisper = "20231117"
 faster-whisper = "^1.0.0"
 torch = { version = "^1.13.1", extras = ["cpu"] }
-google-cloud-storage = "^2.17.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -44,6 +43,7 @@ pytest = "^6.2.5"
 [tool.poetry.group.test.dependencies]
 pytest = "^6.2.5"
 pytest-mock = "*"
+google-cloud-storage = "^2.17.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
