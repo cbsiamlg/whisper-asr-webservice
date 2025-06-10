@@ -14,7 +14,7 @@ RUN apt-get update -qq && \
 
 #–– 2) Create a venv at /app/.venv and install Poetry 2.1.3 into it ––
 RUN python3 -m venv $POETRY_VENV && \
-    $POETRY_VENV/bin/pip install -U pip setuptools && \
+    $POETRY_VENV/bin/pip install -U pip "setuptools<81" && \
     $POETRY_VENV/bin/pip install poetry==2.1.3
 
 # Add Poetry’s bin‐folder to PATH so "poetry" is available globally
