@@ -97,7 +97,7 @@ docker compose -f docker-compose.yml up
 For GPU:
 
 ```sh
-docker-compose up --build -f docker-compose.gpu.yml
+docker compose -f docker-compose.gpu.yml build up
 ```
 
 ## Quick start
@@ -192,12 +192,13 @@ docker run -d --gpus all -p 9000:9000 -e ASR_MODEL=base whisper-asr-webservice-g
 
 ## Test
 
-When making any updates, make sure to test with the file `app/tests/test_transcribe.py`. 
+When making any updates, make sure to test with the file `app/tests/test_transcribe.py`.
 This will grab a video from GCS and hit the endpoints to make sure we get a response.
 
 Notes:
-- This currently isn't part of CI/CD, so you just need to run the tests before opening a PR. 
-- Make sure to run `gcloud auth login` so that the environment variables for your credentials are set. This way we can pull the test assets from GCS. 
+
+- This currently isn't part of CI/CD, so you just need to run the tests before opening a PR.
+- Make sure to run `gcloud auth login` so that the environment variables for your credentials are set. This way we can pull the test assets from GCS.
 
 1) Make sure you've run `poetry install` in your environment so you have all the dependencies. You can run `poetry shell` beforehand to have a clean venv.
 2) Run `poetry run pytest`
@@ -214,4 +215,4 @@ docker run -d -p 9000:9000 -e ASR_MODEL=large -v //c/tmp/whisper:/root/.cache/wh
 
 ## Updates to the models
 
-Going forward the poetry updates to whisper and faster-whisper will be run on a remote machine. The updated models will be stored in the GAR per the usual process. The docker images will be updated with the new models and pushed to the GAR. The images will be tagged with the model version. The latest tag will be updated to point to the latest model version. The cpu-latest is built and pushed as an AMD64 image and tagged as `cpu-latest` in the dev GAR only. You may not be able to build locally unless we add more logic for 
+Going forward the poetry updates to whisper and faster-whisper will be run on a remote machine. The updated models will be stored in the GAR per the usual process. The docker images will be updated with the new models and pushed to the GAR. The images will be tagged with the model version. The latest tag will be updated to point to the latest model version. The cpu-latest is built and pushed as an AMD64 image and tagged as `cpu-latest` in the dev GAR only. You may not be able to build locally unless we add more logic for

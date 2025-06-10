@@ -15,7 +15,7 @@ RUN apt-get update -qq && \
 #–– 2) Create a venv at /app/.venv and install Poetry 2.1.3 into it ––
 RUN python3 -m venv $POETRY_VENV && \
     $POETRY_VENV/bin/pip install -U pip setuptools && \
-    $POETRY_VENV/bin/pip install poetry~=2.1.3
+    $POETRY_VENV/bin/pip install poetry==2.1.3
 
 # Add Poetry’s bin‐folder to PATH so "poetry" is available globally
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
@@ -34,10 +34,9 @@ COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui.css    swagger-ui-assets
 COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui-bundle.js swagger-ui-assets/swagger-ui-bundle.js
 
 #–– 5) Install any remaining dev/runtime deps (if your pyproject.toml needs it) ––
-RUN poetry install --no-root
+RUN poetry --version
+RUN poetry install
 
 #–– 6) Start Gunicorn as before ––
 ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:9000", "--workers", "1", "--timeout", "0", "app.webservice:app", "-k", "uvicorn.workers.UvicornWorker"]
-
-# But add a “test” command via CMD: this only takes effect if you explicitly override ENTRYPOINT.
-CMD ["poetry", "run", "pytest", "--maxfail=1", "--disable-warnings", "-q"]
+CMD []
