@@ -15,8 +15,8 @@ packages = [
 
 # CUDA-enabled PyTorch source
 [[tool.poetry.source]]
-name = "pytorch-nvidia-cuda-runtime-cu12"
-url  = "https://download.pytorch.org/whl/nvidia-cuda-runtime-cu12"
+name = "pytorch-cu124"
+url  = "https://download.pytorch.org/whl/cu124"
 priority = "supplemental"
 
 
@@ -38,7 +38,7 @@ llvmlite = "^0.44.0"
 numba = "^0.61.2"
 openai-whisper = "^20240930"
 faster-whisper = "^1.0.0"
-torch = { version = "^2.7.1", source = "pytorch-nvidia-cuda-runtime-cu12" }
+torch = { version = "^2.7.1", source = "pytorch-cu124" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^6.2.5"
