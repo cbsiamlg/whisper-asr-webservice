@@ -67,6 +67,8 @@ RUN poetry install && \
     $POETRY_VENV/bin/pip install --upgrade \
     -f https://download.pytorch.org/whl/cu126/torch_stable.html \
     torch==2.7.1
+RUN pip install nvidia-cudnn-cu12==9.0.0.312
+
 
 # 11) Entrypoint & default CMD
 ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:9000", "--workers", "1", "--timeout", "0", "app.webservice:app", "-k", "uvicorn.workers.UvicornWorker"]
