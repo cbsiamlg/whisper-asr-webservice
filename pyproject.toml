@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "whisper-asr-webservice"
-version = "1.3.0"
+version = "1.4.0"
 description = "Whisper ASR Webservice is a general-purpose speech recognition webservice."
 homepage  = "https://github.com/cbsiamlg/whisper-asr-webservice/"
 authors = [ 
@@ -15,8 +15,8 @@ packages = [
 
 # CUDA-enabled PyTorch source
 [[tool.poetry.source]]
-name = "pytorch-cu118"
-url  = "https://download.pytorch.org/whl/cu118"
+name = "pytorch-nvidia-cuda-runtime-cu12"
+url  = "https://download.pytorch.org/whl/nvidia-cuda-runtime-cu12"
 priority = "supplemental"
 
 
@@ -38,7 +38,7 @@ llvmlite = "^0.44.0"
 numba = "^0.61.2"
 openai-whisper = "^20240930"
 faster-whisper = "^1.0.0"
-torch = { version = "^2.7.1", source = "pytorch-cu118" }
+torch = { version = "^2.7.1", source = "pytorch-nvidia-cuda-runtime-cu12" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^6.2.5"
