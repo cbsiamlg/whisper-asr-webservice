@@ -39,6 +39,8 @@ numba = "^0.61.2"
 openai-whisper = "^20240930"
 faster-whisper = "^1.0.0"
 torch = { version = "2.7.1", source = "pytorch-cu126" }
+# Add cuDNN for PyTorch 2.7.1 compatibility
+nvidia-cudnn-cu12 = "^9.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^6.2.5"
