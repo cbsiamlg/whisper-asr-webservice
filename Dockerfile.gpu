@@ -65,8 +65,8 @@ COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui-bundle.js swagger-ui-ass
 # 9) Install your package and GPU PyTorch
 RUN poetry install && \
     $POETRY_VENV/bin/pip install --upgrade \
-    -f https://download.pytorch.org/whl/cu118/torch_stable.html \
-    torch==2.7.1+cu118
+    -f https://download.pytorch.org/whl/cu124/torch_stable.html \
+    torch==2.7.1+cu124
 
 # 11) Entrypoint & default CMD
 ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:9000", "--workers", "1", "--timeout", "0", "app.webservice:app", "-k", "uvicorn.workers.UvicornWorker"]
