@@ -150,22 +150,22 @@ def format_json(json_file):
         {
             "id": 0,
             "seek": 0,
-            "start": segment[2],
-            "end": segment[3],
-            "text": segment[4],
-            "tokens": segment[5],
-            "temperature": segment[6],
-            "avg_logprob": segment[7],
-            "compression_ratio": segment[8],
-            "no_speech_prob": segment[9],
+            "start": segment.start,
+            "end": segment.end,
+            "text": segment.text,
+            "tokens": segment.tokens,
+            "temperature": segment.temperature,
+            "avg_logprob": segment.avg_logprob,
+            "compression_ratio": segment.compression_ratio,
+            "no_speech_prob": segment.no_speech_prob,
             "words": [
                 {
-                    "word": word[2],
-                    "start": word[0],
-                    "end": word[1],
-                    "probability": word[3],
+                    "word": word.word,
+                    "start": word.start,
+                    "end": word.end,
+                    "probability": word.probability,
                 }
-                for word in segment[10]
+                for word in segment.words
             ],
         }
         for segment in json_file["segments"]
