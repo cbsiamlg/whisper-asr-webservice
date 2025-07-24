@@ -2,7 +2,7 @@
 FROM swaggerapi/swagger-ui:v4.18.2 AS swagger-ui
 
 # 2) Base image: CUDA 11.8 on Ubuntu 22.04
-FROM nvidia/cuda:12.4.0-base-ubuntu22.04
+FROM nvidia/cuda:12.6.0-base-ubuntu22.04
 
 # 3) Environment & pyenv bootstrap
 ENV PYTHON_VERSION=3.12.0
@@ -65,7 +65,7 @@ COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui-bundle.js swagger-ui-ass
 # 9) Install your package and GPU PyTorch
 RUN poetry install && \
     $POETRY_VENV/bin/pip install --upgrade \
-    -f https://download.pytorch.org/whl/cu124/torch_stable.html \
+    -f https://download.pytorch.org/whl/cu126/torch_stable.html \
     torch==2.7.1
 
 ENV LD_LIBRARY_PATH="/app/.venv/lib/python3.12/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH"
