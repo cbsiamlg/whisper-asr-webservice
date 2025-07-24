@@ -66,7 +66,7 @@ COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui-bundle.js swagger-ui-ass
 RUN poetry install && \
     $POETRY_VENV/bin/pip install --upgrade \
     -f https://download.pytorch.org/whl/cu124/torch_stable.html \
-    torch==2.5.1
+    torch==2.7.1
 
 ENV LD_LIBRARY_PATH="/app/.venv/lib/python3.12/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH"
 
