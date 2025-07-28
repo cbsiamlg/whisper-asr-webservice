@@ -146,6 +146,9 @@ class WriteJSON(ResultWriter):
 
 def format_json(json_file):
     text = json_file["text"]
+    segments_all = json_file.get("segments", [])
+    if len(segments_all) == 0:
+        print("Error fetching segments")
     segments = [
         {
             "id": 0,
@@ -165,10 +168,10 @@ def format_json(json_file):
                     "end": word.end,
                     "probability": word.probability,
                 }
-                for word in segment.words
+                for word in getattr(segment, "words", [])
             ],
         }
-        for segment in json_file["segments"]
+        for segment in segments_all
     ]
     output = {"text": text, "segments": segments, "language": json_file["language"]}
     return output
