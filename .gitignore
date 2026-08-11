@@ -20,7 +20,7 @@ pip-log.txt
 
 .DS_Store
 .idea/*
-.python-version
+# .python-version is intentionally tracked to pin the Python floor (AMLG-13204)
 .vscode/*
 
 /test.py
