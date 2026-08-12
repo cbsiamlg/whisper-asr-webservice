@@ -43,18 +43,21 @@ RUN ln -sfn "$(pyenv which python)"  /usr/bin/python && \
     ln -sfn "$(pyenv which python3)" /usr/bin/python3 && \
     ln -sfn "$(pyenv which pip)"     /usr/bin/pip
 
-# 6) Create venv & install Poetry 2.1.3
+# 6) Create venv & install Poetry 2.3.3
 RUN python3 -m venv $POETRY_VENV && \
-    $POETRY_VENV/bin/pip install -U pip "setuptools<81" && \
-    $POETRY_VENV/bin/pip install poetry==2.1.3
+    $POETRY_VENV/bin/pip install -U pip "setuptools>=78.1.1,<81" "wheel>=0.46.2" && \
+    $POETRY_VENV/bin/pip install poetry==2.3.3
 
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
 WORKDIR /app
 
 # 7) Install deps (without your own code yet)
+# --only main excludes the dev/test groups (pytest, moviepy, google-cloud-storage)
+# from the runtime image — they are not needed to serve and dropping them removes
+# a large block of image CVEs (AMLG-13250).
 COPY poetry.lock pyproject.toml ./
 RUN poetry config virtualenvs.in-project true && \
-    poetry install --no-root
+    poetry install --only main --no-root
 
 # 8) Copy your app + swagger assets
 COPY . .
@@ -62,7 +65,7 @@ COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui.css    swagger-ui-assets
 COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui-bundle.js swagger-ui-assets/swagger-ui-bundle.js
 
 # 9) Install your package and GPU PyTorch
-RUN poetry install && \
+RUN poetry install --only main && \
     $POETRY_VENV/bin/pip install --upgrade \
     -f https://download.pytorch.org/whl/cu126/torch_stable.html \
     torch==2.7.1

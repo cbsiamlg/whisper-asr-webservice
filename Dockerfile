@@ -12,10 +12,10 @@ RUN apt-get update -qq && \
       ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-#–– 2) Create a venv at /app/.venv and install Poetry 2.1.3 into it ––
+#–– 2) Create a venv at /app/.venv and install Poetry 2.3.3 into it ––
 RUN python3 -m venv $POETRY_VENV && \
-    $POETRY_VENV/bin/pip install -U pip "setuptools<81" && \
-    $POETRY_VENV/bin/pip install poetry==2.1.3
+    $POETRY_VENV/bin/pip install -U pip "setuptools>=78.1.1,<81" "wheel>=0.46.2" && \
+    $POETRY_VENV/bin/pip install poetry==2.3.3
 
 # Add Poetry’s bin‐folder to PATH so "poetry" is available globally
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
@@ -25,17 +25,19 @@ WORKDIR /app
 #–– 3) Copy lockfiles, configure Poetry, install dependencies without your source code ––
 COPY poetry.lock pyproject.toml ./
 
+# --only main excludes dev/test groups (pytest, moviepy, google-cloud-storage)
+# from the runtime image to shrink the CVE surface (AMLG-13250).
 RUN poetry config virtualenvs.in-project true && \
-    poetry install --no-root
+    poetry install --only main --no-root
 
 #–– 4) Copy application code and swagger‐ui assets ––
 COPY . .
 COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui.css    swagger-ui-assets/swagger-ui.css
 COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui-bundle.js swagger-ui-assets/swagger-ui-bundle.js
 
-#–– 5) Install any remaining dev/runtime deps (if your pyproject.toml needs it) ––
+#–– 5) Install the app package itself (main group only; dev/test excluded) ––
 RUN poetry --version
-RUN poetry install
+RUN poetry install --only main
 
 #–– 6) Start Gunicorn as before ––
 ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:9000", "--workers", "1", "--timeout", "0", "app.webservice:app", "-k", "uvicorn.workers.UvicornWorker"]
