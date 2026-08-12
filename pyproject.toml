@@ -43,7 +43,7 @@ numba = "^0.61.2"
 # sdist imports pkg_resources in setup.py and no longer builds under the
 # setuptools>=81 that the image's isolated build env now pulls (AMLG-13204).
 openai-whisper = "^20250625"
-faster-whisper = "^1.0.0"
+faster-whisper = "^1.2.1"
 torch = { version = "2.7.1", source = "pytorch-cu126" }
 
 [tool.poetry.group.dev.dependencies]
