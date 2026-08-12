@@ -170,7 +170,9 @@ def format_json(json_file):
                     "end": word.end,
                     "probability": word.probability,
                 }
-                for word in getattr(segment, "words", [])
+                # segment.words is None when word_timestamps is not requested;
+                # `or []` guards against iterating None (AMLG-13252).
+                for word in (getattr(segment, "words", None) or [])
             ],
         }
         for segment in segments_all
