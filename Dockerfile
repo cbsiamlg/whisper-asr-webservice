@@ -12,7 +12,7 @@ RUN apt-get update -qq && \
       ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-#–– 2) Create a venv at /app/.venv and install Poetry 2.1.3 into it ––
+#–– 2) Create a venv at /app/.venv and install Poetry 2.3.3 into it ––
 RUN python3 -m venv $POETRY_VENV && \
     $POETRY_VENV/bin/pip install -U pip "setuptools>=78.1.1,<81" "wheel>=0.46.2" && \
     $POETRY_VENV/bin/pip install poetry==2.3.3
@@ -35,7 +35,7 @@ COPY . .
 COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui.css    swagger-ui-assets/swagger-ui.css
 COPY --from=swagger-ui /usr/share/nginx/html/swagger-ui-bundle.js swagger-ui-assets/swagger-ui-bundle.js
 
-#–– 5) Install any remaining dev/runtime deps (if your pyproject.toml needs it) ––
+#–– 5) Install the app package itself (main group only; dev/test excluded) ––
 RUN poetry --version
 RUN poetry install --only main
 

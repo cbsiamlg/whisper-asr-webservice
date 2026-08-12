@@ -46,8 +46,10 @@ openai-whisper = "^20250625"
 faster-whisper = "^1.2.1"
 torch = { version = "2.7.1", source = "pytorch-cu126" }
 # Security floors for transitive deps that ship in the runtime image (AMLG-13250).
-urllib3 = ">=2.7.0"
-protobuf = ">=6.33.5"
+# Upper-bounded to the current major so a future `poetry update` can't pull an
+# untested major (urllib3 3.x / protobuf 7.x) outside this change's scope.
+urllib3 = ">=2.7.0,<3"
+protobuf = ">=6.33.5,<7"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^6.2.5"
