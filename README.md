@@ -8,7 +8,7 @@ This project is a modification of an open source approach to containerizing the 
 
 ## Python version
 
-The service is pinned to **Python 3.12** (`.python-version`, `requires-python = ">=3.12,<3.13"` in `pyproject.toml`, and `python:3.12` in both Dockerfiles). This is the confirmed runtime floor for the deployed GPU image.
+The service is pinned to **Python 3.12** (`.python-version`, the `python = ">=3.12,<3.13"` constraint under `[tool.poetry.dependencies]` in `pyproject.toml`, and `python:3.12` in both Dockerfiles). This is the confirmed runtime floor for the deployed GPU image.
 
 **Why not 3.13/3.14?** The transcription stack depends on native wheels that do not yet publish builds for newer interpreters in this dependency set — `numba`/`llvmlite` and `torch` (cu126) ship no `cp313`/`cp314` wheels. Moving past 3.12 is therefore not a pin change; it requires a coordinated upgrade of `torch` (and CUDA revalidation), `numba`, `llvmlite`, `ctranslate2`/`faster-whisper`, plus a full re-test of the transcription path and a rebuild/redeploy through the Codefresh → GAR → Helm pipeline. That upgrade is tracked separately and should not widen this range until those wheels are available. See AMLG-13204.
 
