@@ -7,6 +7,7 @@ iterating `None` raised `TypeError`. `FakeSegment.words` defaults to None here,
 so a regression re-introduces the crash.
 """
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import List, Optional
 
 import pytest
@@ -63,6 +64,24 @@ def test_format_json_empty_segments():
 
 
 @pytest.mark.parametrize("words_value", [None, []])
-def test_format_json_empty_or_missing_words(words_value):
+def test_format_json_none_or_empty_words(words_value):
     out = format_json(make_result(FakeSegment(words=words_value)))
+    assert out["segments"][0]["words"] == []
+
+
+def test_format_json_segment_without_words_attribute():
+    # A segment object that lacks `words` entirely exercises the getattr
+    # default (None) -> `or []` path, distinct from words being present-but-None.
+    seg = SimpleNamespace(
+        start=0.0,
+        end=1.5,
+        text="hello",
+        tokens=[1, 2, 3],
+        temperature=0.0,
+        avg_logprob=-0.25,
+        compression_ratio=1.1,
+        no_speech_prob=0.01,
+    )
+    assert not hasattr(seg, "words")
+    out = format_json(make_result(seg))
     assert out["segments"][0]["words"] == []
