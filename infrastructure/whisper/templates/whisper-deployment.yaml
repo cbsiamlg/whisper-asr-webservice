@@ -41,20 +41,32 @@ spec:
               value: faster_whisper
             - name: ASR_MODEL
               value: medium.en
+          # The container loads/converts the ASR model at startup (single
+          # uvicorn worker), which can take many minutes on a cold GPU node.
+          # A startupProbe gives that a generous budget; while it is active,
+          # k8s suspends liveness/readiness so the slow start can't trip them
+          # into a kill-loop (AMLG-13253). ~20 min budget: 15s * 80.
+          startupProbe:
+            httpGet:
+              path: /liveness
+              port: {{ .Values.whisperService.port }}
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 80
           livenessProbe:
             httpGet:
               path: /liveness
               port: {{ .Values.whisperService.port }}
-            initialDelaySeconds: 200
-            timeoutSeconds: 2
+            timeoutSeconds: 5
             periodSeconds: 30
-            failureThreshold: 1
+            # allow a few consecutive misses (e.g. worker briefly busy) before
+            # restarting, instead of killing on a single 2s timeout.
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /readiness
               port: {{ .Values.whisperService.port }}
-            initialDelaySeconds: 200
-            timeoutSeconds: 2
+            timeoutSeconds: 5
             periodSeconds: 10
             failureThreshold: 3
       nodeSelector:
