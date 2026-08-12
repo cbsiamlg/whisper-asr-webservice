@@ -1,3 +1,4 @@
+import importlib.util
 import sys
 import types
 from pathlib import Path
@@ -8,10 +9,13 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-# app.faster_whisper.utils imports ctranslate2 at module load. Stub it so the
-# pure-logic unit tests below don't require the native ML stack (ctranslate2,
-# torch, faster-whisper) to be installed.
-if "ctranslate2" not in sys.modules:
+# app.faster_whisper.utils imports ctranslate2 at module load. Only when the
+# native ML stack is genuinely NOT installed (e.g. a lightweight local run of
+# the writer tests) do we stub it so the pure-logic tests can import the module.
+# When ctranslate2 IS installed (the normal Poetry/CI env) we leave it untouched
+# — find_spec detects installation without importing — so other tests exercise
+# the real dependency rather than this fake.
+if importlib.util.find_spec("ctranslate2") is None:
     ct2 = types.ModuleType("ctranslate2")
     converters = types.ModuleType("ctranslate2.converters")
     transformers = types.ModuleType("ctranslate2.converters.transformers")
