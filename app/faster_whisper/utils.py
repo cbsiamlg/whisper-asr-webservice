@@ -68,22 +68,24 @@ class WriteRawJSON(ResultWriter):
         json.dump(result, file, indent=2)
 
     def format_segments(self, output):
-        segment = [
+        # faster-whisper Segment is a dataclass (not subscriptable), so access
+        # fields by name — mirrors format_json() below. Positional indexing here
+        # raised TypeError and mislabeled fields (AMLG-13219).
+        return [
             {
                 "id": 0,
                 "seek": 0,
-                "start": segment[2],
-                "end": segment[3],
-                "text": segment[4],
-                "tokens": segment[5],
-                "temperature": segment[6],
-                "avg_logprob": segment[7],
-                "compression_ratio": segment[8],
-                "no_speech_prob": segment[9],
+                "start": segment.start,
+                "end": segment.end,
+                "text": segment.text,
+                "tokens": segment.tokens,
+                "temperature": segment.temperature,
+                "avg_logprob": segment.avg_logprob,
+                "compression_ratio": segment.compression_ratio,
+                "no_speech_prob": segment.no_speech_prob,
             }
             for segment in output["segments"]
         ]
-        return segment
 
 
 class WriteVTT(ResultWriter):
