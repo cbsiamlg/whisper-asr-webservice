@@ -22,6 +22,11 @@ steps:
     tag: "${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}"
     dockerfile: Dockerfile.gpu
     buildkit: true
+    # Must match the deployed env (whisper-deployment.yaml) so the build-time
+    # model pre-bake (AMLG-13280) bakes the model the pods actually run.
+    build_arguments:
+      - ASR_MODEL=medium.en
+      - ASR_ENGINE=faster_whisper
     when:
       steps:
         - name: main_clone
