@@ -24,7 +24,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # 4) Install build deps + ffmpeg
 # The --only-upgrade line pulls the patched openssl/libssl from the refreshed
-# Ubuntu lists (openssl 3.0.2-0ubuntu1.17 -> 1.25, CVE-2026-45447 / AMLG-13278).
+# Ubuntu lists (openssl 3.0.2-0ubuntu1.17 -> 3.0.2-0ubuntu1.25,
+# CVE-2026-45447 / AMLG-13278).
 RUN apt-get update -qq && \
     apt-get install -qq --no-install-recommends \
       build-essential curl git \

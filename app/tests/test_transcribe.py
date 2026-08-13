@@ -1,4 +1,5 @@
 import logging
+from functools import lru_cache
 
 import pytest
 import requests
@@ -19,8 +20,12 @@ TEST_AUDIO_NAME = "ASR-test/audio-files/one_min-test-456.wav"
 GCP_PROJECT = "i-amlg-dev"
 
 
+@lru_cache(maxsize=1)
 def get_test_audio():
     """Download the curated audio fixture bytes from GCS.
+
+    Cached in-process so the multiple tests in this module share a single
+    download rather than re-fetching the object each time.
 
     Requires application-default credentials — run `gcloud auth login` (or set
     GOOGLE_APPLICATION_CREDENTIALS) before invoking this integration test.
