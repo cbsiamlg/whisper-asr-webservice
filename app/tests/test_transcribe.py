@@ -1,79 +1,46 @@
+import logging
+
 import pytest
 import requests
-import json
 from google.cloud import storage
-from moviepy.editor import VideoFileClip, AudioFileClip
-import tempfile
-import os
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://devwhisper.amlg.io"
-BUCKET_NAME = "amlg-dev-playground"
-TEST_VIDEO_NAME = "test_assets/beavis_and_butthead.mp4"
+
+# Durable ASR fixture (AMLG-13281). The previous fixture lived in the now-deleted
+# gs://amlg-dev-playground bucket and was a video-only MP4 that had to be
+# pre-converted to WAV with moviepy. This curated asset carries a real audio
+# track, so the service's ffmpeg pipe decodes it directly and the test can POST
+# the bytes as-is — no moviepy pre-conversion.
+BUCKET_NAME = "amlg-dev"
+TEST_AUDIO_NAME = "ASR-test/audio-files/one_min-test-456.wav"
+GCP_PROJECT = "i-amlg-dev"
 
 
-def get_test_video(convert_to_audio=True, trim=True):
+def get_test_audio():
+    """Download the curated audio fixture bytes from GCS.
+
+    Requires application-default credentials — run `gcloud auth login` (or set
+    GOOGLE_APPLICATION_CREDENTIALS) before invoking this integration test.
+    """
     try:
-        storage_client = storage.Client(project="i-amlg-dev")
-        bucket = storage_client.get_bucket(BUCKET_NAME)
-        blob = bucket.get_blob(TEST_VIDEO_NAME)
+        storage_client = storage.Client(project=GCP_PROJECT)
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(TEST_AUDIO_NAME)
+        return blob.download_as_bytes()
     except Exception as e:
-        logger.error(
-            f"Error accessing Google Cloud Storage: {str(e)}"
-            "Make sure you've authenticated with `gcloud auth login` so the credentials are read."
+        pytest.fail(
+            f"Error accessing gs://{BUCKET_NAME}/{TEST_AUDIO_NAME}: {e}. "
+            "Make sure you've authenticated with `gcloud auth login` so the "
+            "credentials are read."
         )
 
-    temp_video_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-    try:
-        blob.download_to_filename(temp_video_file.name)
 
-        if convert_to_audio:
-            temp_audio_file = tempfile.NamedTemporaryFile(
-                delete=False,
-                suffix=".wav"
-            )
-            try:
-                video = VideoFileClip(temp_video_file.name)
-                audio = video.audio
-                if trim:
-                    audio = audio.subclip(0, 30)
-                audio = audio.set_fps(16000)
-                audio.write_audiofile(temp_audio_file.name, codec='pcm_s16le', ffmpeg_params=["-ac", "1"])
-                video.close()
-
-                with open(temp_audio_file.name, "rb") as f:
-                    content = f.read()
-            finally:
-                os.unlink(temp_audio_file.name)
-        else:
-            content = blob.download_as_bytes()
-    finally:
-        os.unlink(temp_video_file.name)
-
-    return content
-
-
-def trim_video(video_path, start_time=0, end_time=120):
-    temp_trimmed_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-    try:
-        video = VideoFileClip(video_path)
-        trimmed_video = video.subclip(start_time, end_time)
-        trimmed_video.write_videofile(temp_trimmed_file.name)
-        video.close()
-        trimmed_video.close()
-        return temp_trimmed_file.name
-    except Exception as e:
-        logger.error(f"Error trimming video: {e}")
-        os.unlink(temp_trimmed_file.name)
-        raise
-
-
-def test_transcription_request(short_video=True, word_timestamps=True):
-    video_content = get_test_video(convert_to_audio=True, trim=short_video)
-    files = {"audio_file": video_content}
+def test_transcription_request(word_timestamps=True):
+    audio_content = get_test_audio()
+    files = {"audio_file": audio_content}
     params = {
         "task": "transcribe",
         "language": "en",
@@ -92,8 +59,8 @@ def test_transcription_request(short_video=True, word_timestamps=True):
 
 
 def test_language_detection():
-    video_content = get_test_video()
-    files = {"audio_file": video_content}
+    audio_content = get_test_audio()
+    files = {"audio_file": audio_content}
     response = requests.post(f"{BASE_URL}/detect-language", files=files)
     assert response.status_code == 200, "Language detection request failed"
     result = response.json()
@@ -112,6 +79,7 @@ def test_liveness():
         assert response.json() == {"status": "ok"}
     except requests.exceptions.RequestException as e:
         pytest.fail(f"Liveness check failed: {str(e)}")
+
 
 def test_readiness():
     try:
