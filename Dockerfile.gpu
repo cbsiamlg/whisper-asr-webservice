@@ -23,17 +23,29 @@ ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
 
 # 4) Install build deps + ffmpeg
-# The --only-upgrade line pulls the patched openssl/libssl from the refreshed
-# Ubuntu lists (openssl 3.0.2-0ubuntu1.17 -> 3.0.2-0ubuntu1.25,
-# CVE-2026-45447 / AMLG-13278).
+# The --only-upgrade line pulls patched OS packages from the refreshed Ubuntu
+# lists: openssl (3.0.2-0ubuntu1.17 -> 3.0.2-0ubuntu1.25, CVE-2026-45447 /
+# AMLG-13278) and gnupg2 (CVE-2025-68973 / AMLG-13279). The gpg *binaries* are
+# already patched at 2.2.27-3ubuntu2.5; the gnupg2 transitional dummy package
+# lagged at 2.1, so it's named explicitly here to pull it forward.
+#
+# We deliberately do NOT install python3-pip: it's the Ubuntu *system* Python
+# (3.10) pip, which we never use (the app runs on the pyenv 3.12 interpreter +
+# Poetry). It drags in python3-setuptools and the bundled wheels under
+# /usr/share/python-wheels/, whose stale setuptools/wheel/jaraco.context copies
+# the image scanner flags for High CVEs (CVE-2025-47273, CVE-2024-6345,
+# CVE-2026-24049, CVE-2026-23949 / AMLG-13279). The purge line removes them if
+# the base image or a transitive dep pulled them in anyway.
 RUN apt-get update -qq && \
     apt-get install -qq --no-install-recommends \
       build-essential curl git \
       libbz2-dev libffi-dev libreadline-dev libsqlite3-dev libssl-dev \
       liblzma-dev libncurses5-dev libncursesw5-dev uuid-dev tk-dev \
-      xz-utils zlib1g-dev python3-pip ffmpeg && \
+      xz-utils zlib1g-dev ffmpeg && \
     apt-get install -qq --no-install-recommends --only-upgrade \
-      openssl libssl3 libssl-dev && \
+      openssl libssl3 libssl-dev gpgv gnupg gnupg2 dirmngr && \
+    apt-get purge -qq -y python3-pip python3-setuptools python3-wheel && \
+    apt-get autoremove -qq -y && \
     rm -rf /var/lib/apt/lists/*
 
 # 5) Install pyenv & compile Python 3.12
@@ -49,11 +61,11 @@ RUN ln -sfn "$(pyenv which python)"  /usr/bin/python && \
     ln -sfn "$(pyenv which pip)"     /usr/bin/pip
 
 # 5b) Upgrade the pyenv base-Python build tools (AMLG-13279).
-# The freshly compiled CPython ships older build tools (setuptools 67.6.1,
-# wheel 0.45.1) that the image scanner flags for High CVEs (CVE-2024-6345,
-# CVE-2025-47273, CVE-2026-24049, CVE-2026-23949) — the Poetry venv was already
-# bumped (AMLG-13250) but this interpreter, which lives outside it, was not.
-# Same floors as the venv (step 6); keep the <81 setuptools cap from AMLG-13204.
+# The freshly compiled CPython ships older setuptools/wheel that the image
+# scanner flags for High CVEs (CVE-2024-6345, CVE-2025-47273) — the Poetry venv
+# was already bumped (AMLG-13250) but this interpreter, which lives outside it,
+# was not. Same floors as the venv (step 6); keep the <81 setuptools cap from
+# AMLG-13204.
 RUN pip install --upgrade pip "setuptools>=78.1.1,<81" "wheel>=0.46.2"
 
 # 6) Create venv & install Poetry 2.3.3
@@ -82,6 +94,21 @@ RUN poetry install --only main && \
     $POETRY_VENV/bin/pip install --upgrade \
     -f https://download.pytorch.org/whl/cu126/torch_stable.html \
     torch==2.7.1
+
+# 10) Post-install security cleanup (AMLG-13279).
+# The last build-tool High CVEs live in *frozen* copies that `pip install -U`
+# never rewrites (confirmed by inspecting the built image):
+#  - CPython ships packaging test fixtures under lib/python3.12/test/
+#    (setuptools 67.6.1 -> CVE-2024-6345/CVE-2025-47273, wheel 0.40.0 ->
+#    CVE-2026-24049). The stdlib test suite isn't used at runtime, so drop it.
+#  - poetry pins the venv's setuptools to 80.9.0, whose bundled setuptools/_vendor
+#    carries wheel 0.45.1 (CVE-2026-24049) + jaraco.context 5.3.0
+#    (CVE-2026-23949). Re-bumping to the latest <81 (80.10.2) — which the pyenv
+#    base already runs — vendors patched wheel 0.46.3 + jaraco_context 6.1.0.
+#    Runs after poetry so it isn't reverted; keeps the <81 cap from AMLG-13204.
+RUN rm -rf "$PYENV_ROOT/versions/${PYTHON_VERSION}/lib/python3.12/test" && \
+    $POETRY_VENV/bin/pip install --upgrade "setuptools>=80.10.2,<81" && \
+    rm -rf /root/.cache/pypoetry /root/.cache/pip
 
 ENV LD_LIBRARY_PATH="/app/.venv/lib/python3.12/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH"
 
