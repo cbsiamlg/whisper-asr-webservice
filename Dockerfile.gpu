@@ -23,12 +23,17 @@ ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
 
 # 4) Install build deps + ffmpeg
+# The --only-upgrade line pulls the patched openssl/libssl from the refreshed
+# Ubuntu lists (openssl 3.0.2-0ubuntu1.17 -> 3.0.2-0ubuntu1.25,
+# CVE-2026-45447 / AMLG-13278).
 RUN apt-get update -qq && \
     apt-get install -qq --no-install-recommends \
       build-essential curl git \
       libbz2-dev libffi-dev libreadline-dev libsqlite3-dev libssl-dev \
       liblzma-dev libncurses5-dev libncursesw5-dev uuid-dev tk-dev \
       xz-utils zlib1g-dev python3-pip ffmpeg && \
+    apt-get install -qq --no-install-recommends --only-upgrade \
+      openssl libssl3 libssl-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # 5) Install pyenv & compile Python 3.12
@@ -42,6 +47,14 @@ RUN export PATH="$PYENV_ROOT/bin:$PATH" && \
 RUN ln -sfn "$(pyenv which python)"  /usr/bin/python && \
     ln -sfn "$(pyenv which python3)" /usr/bin/python3 && \
     ln -sfn "$(pyenv which pip)"     /usr/bin/pip
+
+# 5b) Upgrade the pyenv base-Python build tools (AMLG-13279).
+# The freshly compiled CPython ships older build tools (setuptools 67.6.1,
+# wheel 0.45.1) that the image scanner flags for High CVEs (CVE-2024-6345,
+# CVE-2025-47273, CVE-2026-24049, CVE-2026-23949) — the Poetry venv was already
+# bumped (AMLG-13250) but this interpreter, which lives outside it, was not.
+# Same floors as the venv (step 6); keep the <81 setuptools cap from AMLG-13204.
+RUN pip install --upgrade pip "setuptools>=78.1.1,<81" "wheel>=0.46.2"
 
 # 6) Create venv & install Poetry 2.3.3
 RUN python3 -m venv $POETRY_VENV && \
