@@ -13,11 +13,15 @@ packages = [
 { include = "app" }
 ]
 
-# CUDA-enabled PyTorch source
+# CUDA-enabled PyTorch source. "explicit" so ONLY packages that pin
+# `source = "pytorch-cu126"` (torch, below) query this index. As "supplemental"
+# poetry probes it for every package during resolution, and the index returns
+# HTTP 403 for anything it doesn't host (e.g. transformers), which poetry treats
+# as a fatal auth error and aborts the lock (AMLG-13277).
 [[tool.poetry.source]]
 name = "pytorch-cu126"
 url  = "https://download.pytorch.org/whl/cu126"
-priority = "supplemental"
+priority = "explicit"
 
 
 [[tool.poetry.source]]
