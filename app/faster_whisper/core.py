@@ -6,7 +6,6 @@ import torch
 import logging
 import whisper
 from .utils import (
-    model_converter,
     ResultWriter,
     WriteTXT,
     WriteSRT,
@@ -17,14 +16,19 @@ from .utils import (
 )
 from faster_whisper import WhisperModel
 
+# Load the pre-converted ctranslate2 model that faster-whisper hosts on the HF
+# Hub (e.g. medium.en -> Systran/faster-whisper-medium.en). We used to convert
+# openai/whisper-<model> ourselves via ctranslate2's TransformersConverter, but
+# transformers 5.x (AMLG-13277) removed WhisperTokenizer.additional_special_tokens_ids
+# which that converter relies on, breaking the conversion at cold start. Passing
+# the model name lets faster-whisper fetch the already-converted model instead;
+# AMLG-13280 pre-bakes it into the image at build time so no runtime download.
 model_name = os.getenv("ASR_MODEL", "base")
-model_path = os.path.join("/root/.cache/faster_whisper", model_name)
-model_converter(model_name, model_path)
 
 if torch.cuda.is_available():
-    model = WhisperModel(model_path, device="cuda", compute_type="float32")
+    model = WhisperModel(model_name, device="cuda", compute_type="float32")
 else:
-    model = WhisperModel(model_path, device="cpu", compute_type="int8")
+    model = WhisperModel(model_name, device="cpu", compute_type="int8")
 model_lock = Lock()
 print(f"CUDA available: {torch.cuda.is_available()}")
 

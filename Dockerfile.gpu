@@ -116,21 +116,15 @@ RUN rm -rf "$PYENV_ROOT/versions/${PYTHON_VERSION}/lib/python3.12/test" && \
 ENV LD_LIBRARY_PATH="/app/.venv/lib/python3.12/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH"
 
 # 11) Pre-bake the ASR model at build time (AMLG-13280).
-# app/faster_whisper/core.py converts openai/whisper-<ASR_MODEL> into the
-# ctranslate2 format under /root/.cache/faster_whisper/<model> at import — a
-# ~1.5GB HuggingFace download + convert on EVERY cold start, which dominated the
-# ~7min start that forced the startupProbe (AMLG-13253). Baking it here ships the
-# converted model in the image; at runtime core.py's model_converter() re-runs,
-# ctranslate2 sees the output dir already exists and raises (caught + ignored in
-# utils.py), and WhisperModel loads straight from disk. Conversion is CPU-only
-# (no GPU needed on the build runner) and needs transformers 5.x + torch
-# (AMLG-13277). The `test -s` fails the build loudly if the (exception-swallowing)
-# converter produced nothing; the HuggingFace source cache is then removed so
-# only the converted model ships, not the 1.5GB source weights.
+# app/faster_whisper/core.py loads the pre-converted ctranslate2 model from the
+# HF Hub (e.g. medium.en -> Systran/faster-whisper-medium.en) at import — a
+# ~1.5GB download on EVERY cold start, which dominated the ~7min start that
+# forced the startupProbe (AMLG-13253). Instantiating WhisperModel here downloads
+# it into the HF cache at build time, so pods load from disk instead of fetching
+# 1.5GB on startup. Runs on CPU (no GPU needed on the build runner); WhisperModel
+# raises on any download/load failure, so the build fails loudly on its own.
 RUN if [ "$ASR_ENGINE" = "faster_whisper" ]; then \
-      $POETRY_VENV/bin/python -c "from app.faster_whisper.utils import model_converter; model_converter('${ASR_MODEL}', '/root/.cache/faster_whisper/${ASR_MODEL}')" && \
-      test -s "/root/.cache/faster_whisper/${ASR_MODEL}/model.bin" && \
-      rm -rf /root/.cache/huggingface ; \
+      $POETRY_VENV/bin/python -c "from faster_whisper import WhisperModel; WhisperModel('${ASR_MODEL}', device='cpu', compute_type='int8')" ; \
     fi
 
 # 12) Entrypoint & default CMD
