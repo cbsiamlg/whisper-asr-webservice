@@ -1,15 +1,6 @@
 import json
 import os
 from typing import TextIO
-from ctranslate2.converters.transformers import TransformersConverter
-
-
-def model_converter(model, model_output):
-    converter = TransformersConverter("openai/whisper-" + model)
-    try:
-        converter.convert(model_output, None, "float16", False)
-    except Exception as e:
-        print(e)
 
 
 def format_timestamp(

@@ -12,9 +12,12 @@ ENV PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
 ENV POETRY_VENV=/app/.venv
 ENV GOOGLE_APPLICATION_CREDENTIALS=/secrets/sa.json
 
-# ASR_MODEL / ASR_ENGINE are only needed at runtime, but we copy them here
-# so they’re available for build-time pre-loading if you choose.
-ARG ASR_MODEL=small
+# ASR_MODEL / ASR_ENGINE. Defaults match the deployed config (faster_whisper /
+# medium.en — see infrastructure/whisper/templates/whisper-deployment.yaml) so
+# the build-time model pre-bake below (AMLG-13280) bakes the model the pods
+# actually run. codefresh.yaml also passes these as build-args; keep the three
+# in sync — a mismatch silently reverts to a runtime download.
+ARG ASR_MODEL=medium.en
 ARG ASR_ENGINE=faster_whisper
 ENV ASR_MODEL=${ASR_MODEL}
 ENV ASR_ENGINE=${ASR_ENGINE}
@@ -112,6 +115,18 @@ RUN rm -rf "$PYENV_ROOT/versions/${PYTHON_VERSION}/lib/python3.12/test" && \
 
 ENV LD_LIBRARY_PATH="/app/.venv/lib/python3.12/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH"
 
-# 11) Entrypoint & default CMD
+# 11) Pre-bake the ASR model at build time (AMLG-13280).
+# app/faster_whisper/core.py loads the pre-converted ctranslate2 model from the
+# HF Hub (e.g. medium.en -> Systran/faster-whisper-medium.en) at import — a
+# ~1.5GB download on EVERY cold start, which dominated the ~7min start that
+# forced the startupProbe (AMLG-13253). Instantiating WhisperModel here downloads
+# it into the HF cache at build time, so pods load from disk instead of fetching
+# 1.5GB on startup. Runs on CPU (no GPU needed on the build runner); WhisperModel
+# raises on any download/load failure, so the build fails loudly on its own.
+RUN if [ "$ASR_ENGINE" = "faster_whisper" ]; then \
+      $POETRY_VENV/bin/python -c "from faster_whisper import WhisperModel; WhisperModel('${ASR_MODEL}', device='cpu', compute_type='int8')" ; \
+    fi
+
+# 12) Entrypoint & default CMD
 ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:9000", "--workers", "1", "--timeout", "0", "app.webservice:app", "-k", "uvicorn.workers.UvicornWorker"]
 CMD []
