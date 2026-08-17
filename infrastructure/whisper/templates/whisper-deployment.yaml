@@ -57,17 +57,23 @@ spec:
           #
           # The original ~20 min budget (15s * 80) was sized for the old cold
           # start, which downloaded + converted the model (~7 min). AMLG-13280
-          # pre-baked it, so it now loads from disk: measured 13-25s (mean 18s)
-          # across 20 prod pods on cold nodes. ~3 min (10s * 18) leaves ~7x
-          # margin over the observed worst case while cutting detection of a
-          # genuinely hung pod from ~20 min to ~3 min (AMLG-13316).
+          # pre-baked it, so it loads from disk instead.
+          #
+          # Sized against GKE Image Streaming, which AMLG-13315 enabled on the
+          # splice-xcd-gpu-t4 pool. Streaming near-eliminates the image pull
+          # (201s -> 2s measured) but shifts that cost into startup, because
+          # torch, the CUDA/cudnn libs and the model all fault in lazily on
+          # first access: load went 13-25s (pre-streaming, 20 prod pods) to
+          # 47-58s (streaming, dev). ~5 min (10s * 30) gives ~5x margin over
+          # the observed 58s while still cutting detection of a genuinely hung
+          # pod from ~20 min to ~5 min (AMLG-13316).
           startupProbe:
             httpGet:
               path: /liveness
               port: {{ .Values.whisperService.port }}
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 18
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /liveness
