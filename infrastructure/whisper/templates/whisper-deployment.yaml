@@ -5,13 +5,25 @@ metadata:
   namespace: video-services
 {{- include "whisper-api.labels" . | nindent 2}}
 spec:
-  # Cold starts are dominated by GPU node autoscale + the image pull, not by the
-  # app: measured in prod (v0.0.24, 20 pods on cold nodes) the pull alone is
-  # ~4 min (scheduled -> container running) on top of node provisioning, while
-  # the model load is only ~20s (AMLG-13316). The default progressDeadlineSeconds
-  # is 600s, which would mark the rollout ProgressDeadlineExceeded — and fail the
-  # Helm/Codefresh deploy — long before a healthy pod could go Ready. Keep a
-  # deadline that covers node autoscale + pull with headroom (AMLG-13253).
+  # Cold starts are dominated by GPU node autoscale and the image pull, not by
+  # the app. Measured container-start -> Ready and scheduled -> container-start
+  # (AMLG-13316); which row applies depends on whether GKE Image Streaming is
+  # enabled on the node pool (AMLG-13315):
+  #
+  #                            pull      load
+  #   no Image Streaming       ~4 min    ~20s     (prod v0.0.24, 20 cold pods)
+  #   Image Streaming          ~2-3s     ~47-58s  (dev, 2 pods)
+  #
+  # Streaming does not remove the work, it moves it: the pull shrinks because
+  # layers fault in lazily on first access instead, which lands in startup. The
+  # startupProbe below covers the load column only; this deadline has to cover
+  # node autoscale + the pull column on top of it.
+  #
+  # The default progressDeadlineSeconds is 600s, which would mark the rollout
+  # ProgressDeadlineExceeded — and fail the Helm/Codefresh deploy — long before
+  # a healthy pod could go Ready on a cold node. Keep a deadline that covers
+  # node autoscale + pull with headroom, sized for the slower (unstreamed) row
+  # so it stays valid on pools without streaming (AMLG-13253).
   progressDeadlineSeconds: 3600
   selector:
     matchLabels:
