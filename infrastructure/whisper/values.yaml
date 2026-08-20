@@ -26,4 +26,16 @@ whisperHPA:
       memoryUtilization: 75
 
 ingress:
-  host: devwhisper.amlg.io
+  # Dual-serve during the amlg.io -> paramount.tech migration; the existing
+  # host keeps serving on the same certificate. Note the secret is named
+  # ingress-tls here, matching prod and what this chart has always rendered;
+  # the live object had drifted to the ingress-tls-2026 alias, which holds the
+  # identical cert (same serial and fingerprint), so this is a no-op.
+  hosts:
+    - devwhisper.amlg.io
+    - whisper.dev.amlg.paramount.tech
+  tls:
+    - secretName: ingress-tls
+    - secretName: dev-amlg-paramount-tech-tls
+      hosts:
+        - whisper.dev.amlg.paramount.tech
