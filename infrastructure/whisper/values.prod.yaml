@@ -26,4 +26,13 @@ whisperHPA:
       memoryUtilization: 75
 
 ingress:
-  host: whisper.amlg.io
+  # Dual-serve during the amlg.io -> paramount.tech migration; the existing
+  # host is unchanged and keeps its own certificate.
+  hosts:
+    - whisper.amlg.io
+    - whisper.amlg.paramount.tech
+  tls:
+    - secretName: ingress-tls
+    - secretName: amlg-paramount-tech-tls
+      hosts:
+        - whisper.amlg.paramount.tech
