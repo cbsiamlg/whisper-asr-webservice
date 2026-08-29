@@ -41,7 +41,7 @@ tqdm = "^4.64.1"
 # ctranslate2's TransformersConverter in the faster_whisper model-conversion path
 # (app/faster_whisper/utils.py); the openai_whisper engine does not import it.
 transformers = ">=5,<6"
-python-multipart = "^0.0.30"
+python-multipart = ">=0.0.30,<0.0.32"
 ffmpeg-python = "^0.2.0"
 # Major bump to a current fastapi pulls starlette 1.x, clearing 3 High CVEs
 # (AMLG-13277). The app only uses stable fastapi/starlette surface (UploadFile,
@@ -55,7 +55,7 @@ numba = "^0.61.2"
 # setuptools>=81 that the image's isolated build env now pulls (AMLG-13204).
 openai-whisper = "^20250625"
 faster-whisper = "^1.2.1"
-torch = { version = "2.7.1", source = "pytorch-cu126" }
+torch = { version = "2.13.0", source = "pytorch-cu126" }
 # Security floors for transitive deps that ship in the runtime image (AMLG-13250).
 # Upper-bounded to the current major so a future `poetry update` can't pull an
 # untested major (urllib3 3.x / protobuf 7.x) outside this change's scope.
@@ -63,11 +63,11 @@ urllib3 = ">=2.7.0,<3"
 protobuf = ">=6.33.5,<7"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.0"
+pytest = ">=8,<10"
 setuptools = "<81"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^8.0"
+pytest = ">=8,<10"
 pytest-mock = "*"
 google-cloud-storage = "^2.17.0"
 moviepy = "^1.0.3"
