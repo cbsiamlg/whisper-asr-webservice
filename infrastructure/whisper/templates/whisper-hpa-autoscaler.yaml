@@ -17,3 +17,11 @@ spec:
       target:
         type: Utilization
         averageUtilization: {{ .Values.whisperHPA.autoscale.memoryUtilization }}
+  {{- with .Values.whisperHPA.autoscale.cpuUtilization }}
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ . }}
+  {{- end }}

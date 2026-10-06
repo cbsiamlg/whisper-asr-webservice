@@ -24,6 +24,9 @@ whisperHPA:
       min: 3
       max: 26
       memoryUtilization: 75
+      # CPU tracks load (audio decode + CTranslate2 per request); memory is flat
+      # once the model is loaded, so it never triggers a scale-out on its own.
+      cpuUtilization: 40
 
 ingress:
   # Dual-serve during the amlg.io -> paramount.tech migration; the existing
