@@ -8,7 +8,7 @@ from google.cloud import storage
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-BASE_URL = "https://devwhisper.amlg.io"
+BASE_URL = "https://whisper.dev.amlg.paramount.tech"
 
 # Durable ASR fixture (AMLG-13281). The previous fixture lived in the now-deleted
 # gs://amlg-dev-playground bucket and was a video-only MP4 that had to be
